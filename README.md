@@ -1,1 +1,1 @@
-A parser that, surprisingly, parses (wow!) famous russian headhunting website (https://hh.ru/) and saves results to an excel file. The code uses selenium to authorize and save cookies, and requests module to parse through the website.
+A parser that, surprisingly, parses (wow!) famous russian headhunting website (https://hh.ru/) and saves results to an excel file. The code uses selenium to authorize, pickle to save cookies, and requests module to parse through the website.
