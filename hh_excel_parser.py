@@ -26,6 +26,7 @@ headers = {
                   '(KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36'
 }
 
+# check if cookies already exist else authorize and save cookies
 if os.path.isfile('cookies'):
     with open("cookies", "rb") as f:
         cookies = pickle.load(f)
@@ -58,9 +59,11 @@ else:
         pickle.dump(driver.get_cookies(), f)
         print('Кукис успешно сохранен\n')
 
+    # load cookies
     with open("cookies", "rb") as f:
         cookies = pickle.load(f)
 
+# Enter URl and prompt to enter again if URl is not correct or cannot be reached
 url = input('Введите ссылку на искомую категорию: ')
 check_if_correct = requests.get(url, headers=headers, timeout=10)
 
@@ -68,21 +71,28 @@ while not ('hh.ru/catalog' in url) or not check_if_correct.status_code == 200:
     print('Введите верную ссылку!\n')
     url = input('Введите ссылку на искомую категорию: ')
 
+# Enter how many results you want to see
 result_count = int(input('Введите сколько результатов хотите получить:  '))
 
 while True:
     s = requests.Session()
 
+    # add cookies to our Session by loading cookies file
     for cookie in cookies:
         s.cookies.set(cookie['name'], cookie['value'])
 
+    # send a GET request to the website and increment the page number with each cycle
     response = s.get(f"{url}&page={n}", headers=headers)
 
+    # Use BeatifulSoup to get access to all vacancy blocks on the website
     bs = BeautifulSoup(response.content, 'html.parser')
     vacancies = bs.select('div.vacancy-serp-item')
 
+    # Get each vacancy block
     for vacancy in vacancies:
+        # Iterate until index is no larger than result_count
         if index <= result_count:
+            # Get name, company name, salary, publication date, and vacancy url in each block, and append to lists
             name = vacancy.select_one('[data-qa="vacancy-serp__vacancy-title"]')
             company = vacancy.select_one('[data-qa="vacancy-serp__vacancy-employer"]')
             salary_level = vacancy.select_one('span[data-qa="vacancy-serp__vacancy-compensation"]')
@@ -105,9 +115,11 @@ while True:
             vacancyurl_list.append(vacancy_url)
 
         else:
+            # As soon as index becomes equal to result_count, set limiter to True to finish the loop
             limiter = True
         index += 1
 
+    # save the results to an Excel file
     if limiter:
         df = pd.DataFrame({'Name': name_list,
                            'Company': company_list,
@@ -119,6 +131,7 @@ while True:
         current_time = time.strftime("%H_%M")
         filename = 'vacancies.xlsx'
 
+        # If file does not exist, write a new one, else load and append results to an existing one
         if not os.path.isfile(filename):
             with pd.ExcelWriter(filename, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name=current_time, index=False)
