@@ -64,12 +64,12 @@ else:
         cookies = pickle.load(f)
 
 # Enter URl and prompt to enter again if URl is not correct or cannot be reached
-url = input('Введите ссылку на искомую категорию: ')
-check_if_correct = requests.get(url, headers=headers, timeout=10)
-
-while not ('hh.ru/catalog' in url) or not check_if_correct.status_code == 200:
-    print('Введите верную ссылку!\n')
+while True:
     url = input('Введите ссылку на искомую категорию: ')
+    check_if_correct = requests.get(url, headers=headers, timeout=10)
+    if check_if_correct.status_code == 200 and 'hh.ru/catalog' in url:
+        break
+    print('Указана неверная ссылка, либо данной категории не существует.\n')
 
 # Enter how many results you want to see
 result_count = int(input('Введите сколько результатов хотите получить:  '))
